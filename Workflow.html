@@ -1,0 +1,1529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Support Ticket Classifier - Workflow Architecture</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(135deg, #0f172a 0%, #1a1f3a 100%);
+      color: #e2e8f0;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      padding: 2rem 0;
+      border-bottom: 2px solid #4f46e5;
+      margin-bottom: 2rem;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      color: #a78bfa;
+      margin-bottom: 0.5rem;
+      text-shadow: 0 0 20px rgba(167, 139, 250, 0.3);
+    }
+
+    .subtitle {
+      color: #94a3b8;
+      font-size: 1.1rem;
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .nav-tabs button {
+      background: #1e293b;
+      border: 2px solid #334155;
+      color: #cbd5e1;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .nav-tabs button:hover {
+      border-color: #4f46e5;
+      color: #a78bfa;
+    }
+
+    .nav-tabs button.active {
+      background: #4f46e5;
+      border-color: #4f46e5;
+      color: #fff;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* ========== FLOW DIAGRAM SECTION ========== */
+    .flow-container {
+      background: #1a1f3a;
+      border: 2px solid #334155;
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      overflow-x: auto;
+    }
+
+    .flow-title {
+      font-size: 1.5rem;
+      color: #a78bfa;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .flow-title::before {
+      content: "▶";
+      color: #4f46e5;
+    }
+
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      min-height: 120px;
+    }
+
+    .flow-node {
+      background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+      border: 2px solid #818cf8;
+      border-radius: 10px;
+      padding: 1rem;
+      min-width: 140px;
+      text-align: center;
+      font-weight: 600;
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .flow-node:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(79, 70, 229, 0.5);
+    }
+
+    .flow-node.start {
+      background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+      border-color: #6ee7b7;
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    }
+
+    .flow-node.end {
+      background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+      border-color: #fcd34d;
+      color: #1f2937;
+      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+    }
+
+    .flow-node.security {
+      background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
+      border-color: #fca5a5;
+      box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+    }
+
+    .flow-node.process {
+      background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);
+      border-color: #ddd6fe;
+      box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+    }
+
+    .flow-node.cost {
+      background: linear-gradient(135deg, #06b6d4 0%, #22d3ee 100%);
+      border-color: #67e8f9;
+      color: #0c4a6e;
+      box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
+    }
+
+    .flow-arrow {
+      font-size: 1.5rem;
+      color: #4f46e5;
+      font-weight: bold;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .decision-diamond {
+      width: 100px;
+      height: 100px;
+      background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
+      border: 2px solid #fb7185;
+      transform: rotate(45deg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 5px;
+      color: #fff;
+      font-weight: 600;
+      text-align: center;
+      font-size: 0.8rem;
+      box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3);
+    }
+
+    .decision-diamond > div {
+      transform: rotate(-45deg);
+    }
+
+    /* ========== CARD SECTIONS ========== */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .card {
+      background: #1e293b;
+      border: 2px solid #334155;
+      border-radius: 10px;
+      padding: 1.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .card:hover {
+      border-color: #4f46e5;
+      box-shadow: 0 10px 30px rgba(79, 70, 229, 0.2);
+      transform: translateY(-5px);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #a78bfa;
+    }
+
+    .card-icon {
+      font-size: 1.5rem;
+    }
+
+    .card-content {
+      color: #cbd5e1;
+      line-height: 1.8;
+    }
+
+    .card-list {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .card-list li {
+      padding: 0.4rem 0;
+      padding-left: 1.5rem;
+      position: relative;
+    }
+
+    .card-list li::before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: #4f46e5;
+      font-weight: bold;
+    }
+
+    /* ========== DETAILED FLOW SECTION ========== */
+    .detailed-flow {
+      background: #1a1f3a;
+      border: 2px solid #334155;
+      border-radius: 12px;
+      padding: 2rem;
+    }
+
+    .flow-step {
+      display: flex;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid #334155;
+    }
+
+    .flow-step:last-child {
+      border-bottom: none;
+    }
+
+    .step-number {
+      min-width: 50px;
+      height: 50px;
+      background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.2rem;
+      color: #fff;
+    }
+
+    .step-content h3 {
+      color: #a78bfa;
+      margin-bottom: 0.5rem;
+      font-size: 1.1rem;
+    }
+
+    .step-content p {
+      color: #cbd5e1;
+      margin-bottom: 0.8rem;
+    }
+
+    .step-modules {
+      background: #0f172a;
+      border-left: 3px solid #4f46e5;
+      padding: 1rem;
+      border-radius: 4px;
+      margin-top: 0.5rem;
+    }
+
+    .module-tag {
+      display: inline-block;
+      background: #1e293b;
+      color: #60a5fa;
+      padding: 0.3rem 0.8rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      margin-right: 0.5rem;
+      margin-bottom: 0.5rem;
+      border: 1px solid #334155;
+    }
+
+    /* ========== PII REDACTION FLOW ========== */
+    .pii-pattern {
+      background: #1e293b;
+      border-left: 4px solid #ef4444;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-radius: 4px;
+    }
+
+    .pii-pattern h4 {
+      color: #f87171;
+      margin-bottom: 0.5rem;
+    }
+
+    .pii-pattern p {
+      color: #cbd5e1;
+      font-size: 0.95rem;
+    }
+
+    .pii-pattern code {
+      background: #0f172a;
+      padding: 0.2rem 0.4rem;
+      border-radius: 3px;
+      color: #fbbf24;
+      font-family: 'Courier New', monospace;
+    }
+
+    /* ========== COST CALCULATION TABLE ========== */
+    .cost-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 2rem;
+    }
+
+    .cost-table th {
+      background: #334155;
+      color: #e2e8f0;
+      padding: 1rem;
+      text-align: left;
+      border: 1px solid #4b5563;
+    }
+
+    .cost-table td {
+      padding: 0.8rem 1rem;
+      border: 1px solid #334155;
+      color: #cbd5e1;
+    }
+
+    .cost-table tbody tr:hover {
+      background: #1e293b;
+    }
+
+    .price-high {
+      color: #f87171;
+      font-weight: 600;
+    }
+
+    .price-low {
+      color: #4ade80;
+      font-weight: 600;
+    }
+
+    /* ========== CLASSIFICATION METHODS ========== */
+    .method-box {
+      background: #0f172a;
+      border: 2px solid #334155;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .method-box h3 {
+      color: #a78bfa;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .method-box code {
+      background: #1a1f3a;
+      color: #60a5fa;
+      padding: 0.3rem 0.6rem;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+    }
+
+    .input-output {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .input-output > div {
+      background: #1a1f3a;
+      padding: 1rem;
+      border-radius: 6px;
+      border-left: 3px solid #4f46e5;
+    }
+
+    .input-output > div:last-child {
+      border-left-color: #10b981;
+    }
+
+    .input-output h4 {
+      color: #60a5fa;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+    }
+
+    .input-output p {
+      color: #cbd5e1;
+      font-size: 0.9rem;
+    }
+
+    /* ========== INTEGRATION DIAGRAM ========== */
+    .integration-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .integration-box {
+      background: #1e293b;
+      border: 2px solid #334155;
+      border-radius: 10px;
+      padding: 1.5rem;
+      text-align: center;
+    }
+
+    .integration-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .integration-box h3 {
+      color: #a78bfa;
+      margin-bottom: 0.8rem;
+    }
+
+    .integration-box p {
+      color: #cbd5e1;
+      font-size: 0.95rem;
+    }
+
+    .integration-box.active {
+      border-color: #4f46e5;
+      background: #252b48;
+      box-shadow: 0 0 20px rgba(79, 70, 229, 0.2);
+    }
+
+    /* ========== FOOTER ========== */
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 1px solid #334155;
+      color: #64748b;
+      font-size: 0.9rem;
+    }
+
+    .legend {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 2rem;
+      padding: 1.5rem;
+      background: #1a1f3a;
+      border-radius: 10px;
+      border: 1px solid #334155;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .legend-color {
+      width: 30px;
+      height: 30px;
+      border-radius: 5px;
+      border: 2px solid #334155;
+    }
+
+    .legend-color.start {
+      background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+    }
+
+    .legend-color.security {
+      background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
+    }
+
+    .legend-color.process {
+      background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);
+    }
+
+    .legend-color.cost {
+      background: linear-gradient(135deg, #06b6d4 0%, #22d3ee 100%);
+    }
+
+    .legend-color.end {
+      background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 1.8rem;
+      }
+
+      .flow-diagram {
+        flex-direction: column;
+      }
+
+      .flow-arrow {
+        transform: rotate(90deg);
+      }
+
+      .input-output {
+        grid-template-columns: 1fr;
+      }
+
+      .nav-tabs {
+        flex-direction: column;
+      }
+
+      .nav-tabs button {
+        width: 100%;
+      }
+    }
+
+    .highlight {
+      background: rgba(79, 70, 229, 0.2);
+      padding: 1rem;
+      border-left: 4px solid #4f46e5;
+      border-radius: 4px;
+      margin: 1rem 0;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <header>
+    <h1>🎯 Support Ticket Classifier</h1>
+    <p class="subtitle">Complete Workflow & Architecture Documentation</p>
+  </header>
+
+  <!-- NAVIGATION TABS -->
+  <div class="nav-tabs">
+    <button class="tab-btn active" onclick="showTab('overview')">📊 Overview</button>
+    <button class="tab-btn" onclick="showTab('main-flow')">🔄 Main Flow</button>
+    <button class="tab-btn" onclick="showTab('pii-flow')">🔒 PII Redaction</button>
+    <button class="tab-btn" onclick="showTab('cost-flow')">💰 Cost Calculation</button>
+    <button class="tab-btn" onclick="showTab('classification')">🧠 Classification</button>
+    <button class="tab-btn" onclick="showTab('modules')">🔧 Production Modules</button>
+    <button class="tab-btn" onclick="showTab('integration')">🔌 Integration</button>
+  </div>
+
+  <!-- ===== TAB: OVERVIEW ===== -->
+  <div id="overview" class="tab-content active">
+    <div class="flow-container">
+      <div class="flow-title">High-Level System Architecture</div>
+      <div class="flow-diagram">
+        <div class="flow-node start">START</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node security">Security Check</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node process">Classification</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node process">Validation</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node cost">Cost Track</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node end">Response</div>
+      </div>
+    </div>
+
+    <div class="cards-grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🌐</span>
+          <span>Entry Point</span>
+        </div>
+        <div class="card-content">
+          <strong>FastAPI REST API</strong> (main.py)
+          <br><br>
+          POST /classify endpoint receives customer support tickets and orchestrates the LangGraph pipeline.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🕸️</span>
+          <span>Orchestration</span>
+        </div>
+        <div class="card-content">
+          <strong>LangGraph Pipeline</strong> (graph.py)
+          <br><br>
+          State-based workflow that chains production modules in a deterministic sequence.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">⚙️</span>
+          <span>Processing</span>
+        </div>
+        <div class="card-content">
+          <strong>Production Modules</strong> (production_modules/)
+          <br><br>
+          8 specialized modules handling PII, security, classification, validation, and cost tracking.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🧠</span>
+          <span>Intelligence</span>
+        </div>
+        <div class="card-content">
+          <strong>OpenAI GPT Models</strong>
+          <br><br>
+          GPT-4o-mini for classification and injection detection, with fallback to GPT-4o if needed.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">📋</span>
+          <span>Data Schema</span>
+        </div>
+        <div class="card-content">
+          <strong>Pydantic Models</strong> (schema.py)
+          <br><br>
+          Defines TicketClassification, TicketState, and Enums for categories, teams, priorities, and sentiments.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">📊</span>
+          <span>Demo UI</span>
+        </div>
+        <div class="card-content">
+          <strong>Interactive Web Interface</strong> (index.html)
+          <br><br>
+          Beautiful frontend for manual ticket classification with real-time cost and PII display.
+        </div>
+      </div>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-color start"></div>
+        <span>Start/Entry</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color security"></div>
+        <span>Security Check</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color process"></div>
+        <span>Processing</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color cost"></div>
+        <span>Cost Tracking</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color end"></div>
+        <span>Response</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TAB: MAIN FLOW ===== -->
+  <div id="main-flow" class="tab-content">
+    <div class="detailed-flow">
+      <div class="flow-title">End-to-End Pipeline Execution</div>
+
+      <div class="flow-step">
+        <div class="step-number">1️⃣</div>
+        <div class="step-content">
+          <h3>API Request Reception</h3>
+          <p>User submits a support ticket via POST /classify endpoint. FastAPI validates the request payload (ticket_text and channel).</p>
+          <div class="step-modules">
+            <strong>File:</strong> <span class="module-tag">main.py</span>
+            <strong>Function:</strong> <span class="module-tag">POST /classify</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="step-number">2️⃣</div>
+        <div class="step-content">
+          <h3>PII Redaction</h3>
+          <p>Raw ticket text is scanned for sensitive data (emails, phone numbers, credit cards) and redacted before LLM processing.</p>
+          <div class="step-modules">
+            <strong>File:</strong> <span class="module-tag">graph.py → pii_redact_node()</span>
+            <strong>Module:</strong> <span class="module-tag">pii_redaction.py</span>
+            <strong>Pattern Types:</strong> Email, Phone, Credit Card
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="step-number">3️⃣</div>
+        <div class="step-content">
+          <h3>Prompt Injection Detection</h3>
+          <p>A guard LLM evaluates the raw input to detect malicious injection attempts or jailbreak patterns. If detected, pipeline blocks classification.</p>
+          <div class="step-modules">
+            <strong>File:</strong> <span class="module-tag">graph.py → injection_check_node()</span>
+            <strong>Module:</strong> <span class="module-tag">prompt_injection.py</span>
+            <strong>Guard Model:</strong> <span class="module-tag">gpt-4o-mini</span>
+            <strong>Decision Logic:</strong> If is_injection=true, return SAFE_CLASSIFICATION, set injection_blocked=true
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="step-number">4️⃣</div>
+        <div class="step-content">
+          <h3>Classification</h3>
+          <p>If no injection detected, redacted ticket is sent to LLM with active prompt template for structured classification (category, team, priority, sentiment).</p>
+          <div class="step-modules">
+            <strong>File:</strong> <span class="module-tag">graph.py → classify_node()</span>
+            <strong>Module:</strong> <span class="module-tag">structured_output.py</span>
+            <strong>Input:</strong> <span class="module-tag">redacted_ticket + system_prompt</span>
+            <strong>Output:</strong> <span class="module-tag">TicketClassification object</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="step-number">5️⃣</div>
+        <div class="step-content">
+          <h3>Response Validation</h3>
+          <p>Classification output is validated against Pydantic schema. If invalid, fallback mechanism is triggered.</p>
+          <div class="step-modules">
+            <strong>File:</strong> <span class="module-tag">graph.py → validate_node()</span>
+            <strong>Module:</strong> <span class="module-tag">validate_response.py</span>
+            <strong>Validation:</strong> Schema compliance, confidence score bounds (0.0-1.0), required fields
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="step-number">6️⃣</div>
+        <div class="step-content">
+          <h3>Fallback Retry (if Needed)</h3>
+          <p>If validation fails, fallback mechanism re-classifies with a safe, minimal prompt to ensure a response is always returned.</p>
+          <div class="step-modules">
+            <strong>File:</strong> <span class="module-tag">graph.py → fallback_node()</span>
+            <strong>Module:</strong> <span class="module-tag">fallback_retry.py</span>
+            <strong>Trigger:</strong> validation_status == "fail"
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="step-number">7️⃣</div>
+        <div class="step-content">
+          <h3>Cost Calculation & Logging</h3>
+          <p>Token counts are computed, costs are calculated based on pricing model, and session totals are accumulated.</p>
+          <div class="step-modules">
+            <strong>File:</strong> <span class="module-tag">graph.py → cost_log_node()</span>
+            <strong>Module:</strong> <span class="module-tag">cost_calculator.py</span>
+            <strong>Calculation:</strong> input_tokens + output_tokens → USD cost using GPT pricing
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="step-number">8️⃣</div>
+        <div class="step-content">
+          <h3>Response Assembly & Return</h3>
+          <p>Classification, PII detection flag, injection status, cost info, and prompt version are bundled into ClassifyResponse and sent to client.</p>
+          <div class="step-modules">
+            <strong>File:</strong> <span class="module-tag">main.py</span>
+            <strong>Response Type:</strong> <span class="module-tag">ClassifyResponse (Pydantic Model)</span>
+            <strong>HTTP Status:</strong> 200 OK
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TAB: PII REDACTION FLOW ===== -->
+  <div id="pii-flow" class="tab-content">
+    <div class="flow-container">
+      <div class="flow-title">PII (Personally Identifiable Information) Detection & Redaction</div>
+
+      <div class="highlight">
+        <strong>Purpose:</strong> Prevent sensitive customer data (emails, phone numbers, credit card numbers) from being sent to the LLM. Redacted versions are used for processing while original data is protected.
+      </div>
+
+      <h3 style="color: #a78bfa; margin: 2rem 0 1rem;">Redaction Patterns</h3>
+
+      <div class="pii-pattern">
+        <h4>📧 Email Address Pattern</h4>
+        <p>
+          <strong>Regex:</strong> <code>[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}</code>
+          <br>
+          <strong>Examples Matched:</strong> user@example.com, john.doe+tag@company.co.uk
+          <br>
+          <strong>Redaction Output:</strong> [EMAIL REDACTED]
+        </p>
+      </div>
+
+      <div class="pii-pattern">
+        <h4>📱 Phone Number Pattern</h4>
+        <p>
+          <strong>Regex:</strong> <code>(?<!\d)(?:\+?1[\s.\-]?)?(?:\(?\d{3}\)?[\s.\-]?)?\d{3}[\s.\-]?\d{4}(?!\d)</code>
+          <br>
+          <strong>Examples Matched:</strong> (555) 123-4567, 555-123-4567, +1 555 123 4567
+          <br>
+          <strong>Redaction Output:</strong> [PHONE REDACTED]
+          <br>
+          <strong>Note:</strong> Lookbehind/lookahead prevents false positives on credit card digits
+        </p>
+      </div>
+
+      <div class="pii-pattern">
+        <h4>💳 Credit Card Pattern</h4>
+        <p>
+          <strong>Regex:</strong> <code>(?<!\d)(?:\d[ \-]?){13,19}(?!\d)</code>
+          <br>
+          <strong>Examples Matched:</strong> 1234 5678 9012 3456, 4111-1111-1111-1111
+          <br>
+          <strong>Range:</strong> 13–19 digit card numbers
+          <br>
+          <strong>Redaction Output:</strong> [CREDIT CARD REDACTED]
+          <br>
+          <strong>Note:</strong> Luhn check intentionally skipped to catch sequential/demo numbers
+        </p>
+      </div>
+
+      <h3 style="color: #a78bfa; margin: 2rem 0 1rem;">Redaction Workflow</h3>
+
+      <div class="flow-diagram" style="margin: 2rem 0;">
+        <div class="flow-node" style="min-width: 160px;">Raw Ticket Text</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node security" style="min-width: 160px;">Scan Patterns</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node process" style="min-width: 160px;">Replace w/ Tokens</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node" style="min-width: 160px;">Redacted Text</div>
+      </div>
+
+      <div class="cards-grid">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">📄</span>
+            <span>Input</span>
+          </div>
+          <div class="card-content">
+            <strong>Raw support ticket:</strong>
+            <br><br>
+            "I'm furious! My order hasn't arrived. Order #98765. Email: abdul@xyzmail.com. Credit card: 1234567890123456"
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">🔄</span>
+            <span>Processing</span>
+          </div>
+          <div class="card-content">
+            <strong>3 patterns matched:</strong>
+            <br>
+            1. abdul@xyzmail.com → EMAIL<br>
+            2. 1234567890123456 → CARD
+            <br><br>
+            Result: pii_detected = True
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">🔐</span>
+            <span>Output</span>
+          </div>
+          <div class="card-content">
+            <strong>Redacted ticket:</strong>
+            <br><br>
+            "I'm furious! My order hasn't arrived. Order #98765. Email: [EMAIL REDACTED]. Credit card: [CREDIT CARD REDACTED]"
+          </div>
+        </div>
+      </div>
+
+      <div class="highlight">
+        <strong>⚠️ Production Note:</strong> This regex-based approach is fast but has limitations. In production, extend with ML-based recognizers (e.g., Presidio + spaCy) for name, address, and context-aware PII detection. Always log redaction events to an audit trail.
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TAB: COST CALCULATION FLOW ===== -->
+  <div id="cost-flow" class="tab-content">
+    <div class="flow-container">
+      <div class="flow-title">Cost Calculation & Token Tracking</div>
+
+      <div class="highlight">
+        <strong>Purpose:</strong> Track API costs per request and maintain session-level spending visibility. Uses OpenAI's token pricing model to calculate USD costs without external API calls.
+      </div>
+
+      <h3 style="color: #a78bfa; margin: 2rem 0 1rem;">GPT Pricing Model (as of 2024)</h3>
+
+      <table class="cost-table">
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th>Input Cost (per 1K tokens)</th>
+            <th>Output Cost (per 1K tokens)</th>
+            <th>Use Case</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>gpt-4o-mini</strong></td>
+            <td class="price-low">$0.00015</td>
+            <td class="price-low">$0.00060</td>
+            <td>Default: Fast, cheap, good quality</td>
+          </tr>
+          <tr>
+            <td><strong>gpt-4o</strong></td>
+            <td class="price-high">$0.005</td>
+            <td class="price-high">$0.015</td>
+            <td>Fallback: Higher quality, more expensive</td>
+          </tr>
+          <tr>
+            <td><strong>gpt-4-turbo</strong></td>
+            <td class="price-high">$0.010</td>
+            <td class="price-high">$0.030</td>
+            <td>Complex reasoning: Highest cost</td>
+          </tr>
+          <tr>
+            <td><strong>gpt-3.5-turbo</strong></td>
+            <td class="price-low">$0.0005</td>
+            <td class="price-low">$0.0015</td>
+            <td>Legacy: Lowest cost but lower quality</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 style="color: #a78bfa; margin: 2rem 0 1rem;">Cost Calculation Flow</h3>
+
+      <div class="flow-diagram" style="margin: 2rem 0;">
+        <div class="flow-node process" style="min-width: 160px;">Count Tokens</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node process" style="min-width: 160px;">Apply Pricing</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node process" style="min-width: 160px;">Calculate USD</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node cost" style="min-width: 160px;">Log & Accumulate</div>
+      </div>
+
+      <div class="cards-grid">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">1️⃣</span>
+            <span>Token Counting</span>
+          </div>
+          <div class="card-content">
+            <strong>Tool:</strong> OpenAI's tiktoken library
+            <br><br>
+            Accurately counts tokens for each model encoding. Tokens represent ~4 characters.
+            <br><br>
+            <strong>Input:</strong> Ticket text
+            <br>
+            <strong>Output:</strong> input_tokens count
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">2️⃣</span>
+            <span>Cost Calculation</span>
+          </div>
+          <div class="card-content">
+            <strong>Formula:</strong>
+            <br><br>
+            input_cost = (input_tokens / 1000) × input_price
+            <br>
+            output_cost = (output_tokens / 1000) × output_price
+            <br>
+            total_cost = input_cost + output_cost
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">3️⃣</span>
+            <span>Session Tracking</span>
+          </div>
+          <div class="card-content">
+            <strong>SessionCostTracker class:</strong>
+            <br><br>
+            Accumulates costs across multiple requests in a session. Provides visibility into total API spend.
+            <br><br>
+            Logged at app shutdown in lifespan.
+          </div>
+        </div>
+      </div>
+
+      <h3 style="color: #a78bfa; margin: 2rem 0 1rem;">Example Cost Calculation</h3>
+
+      <div class="method-box">
+        <h3>📊 Sample Ticket Classification</h3>
+        <div style="background: #0f172a; padding: 1.5rem; border-radius: 8px; margin-top: 1rem;">
+          <p style="color: #cbd5e1; margin-bottom: 1rem;">
+            <strong>Ticket:</strong> "My order hasn't arrived. Please help!"
+          </p>
+          <p style="color: #cbd5e1; margin-bottom: 1rem;">
+            <strong>Model:</strong> gpt-4o-mini
+          </p>
+          <p style="color: #cbd5e1; margin-bottom: 1rem;">
+            <strong>Token Count:</strong> 45 input + 120 output
+          </p>
+          <p style="color: #cbd5e1; margin-bottom: 1rem;">
+            <strong>Calculation:</strong>
+            <br>
+            • Input: (45 / 1000) × $0.00015 = $0.00000675
+            <br>
+            • Output: (120 / 1000) × $0.0006 = $0.000072
+            <br>
+            • <strong>Total: $0.00007875 ≈ $0.000079 per request</strong>
+          </p>
+        </div>
+      </div>
+
+      <div class="highlight">
+        <strong>💡 Optimization Tip:</strong> Redacting PII reduces token count (shorter text = fewer tokens). Using shorter prompts and models like gpt-4o-mini drastically reduces costs. Session tracking enables budget alerts and cost-based routing.
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TAB: CLASSIFICATION ===== -->
+  <div id="classification" class="tab-content">
+    <div class="flow-container">
+      <div class="flow-title">Classification Methods & Output Structure</div>
+
+      <div class="method-box">
+        <h3>🎯 Method 1: JSON Function Calling (Primary)</h3>
+        <p style="color: #cbd5e1; margin-bottom: 1rem;">
+          Uses OpenAI's structured output (function calling) to guarantee valid JSON responses matching the TicketClassification schema.
+        </p>
+        <div class="input-output">
+          <div>
+            <h4>Input</h4>
+            <p>• Redacted ticket text<br>• System prompt template<br>• Model name<br>• JSON schema</p>
+          </div>
+          <div>
+            <h4>Output</h4>
+            <p>• issue_category<br>• assigned_team<br>• priority<br>• user_sentiment<br>• confidence_score</p>
+          </div>
+        </div>
+        <div style="background: #0f172a; padding: 1rem; border-radius: 6px; margin-top: 1rem; border-left: 3px solid #4f46e5;">
+          <strong>File:</strong> <code>structured_output.py</code>
+          <br>
+          <strong>Function:</strong> <code>classify_with_json_mode()</code>
+          <br>
+          <strong>Guarantee:</strong> 100% valid JSON output matching schema
+        </div>
+      </div>
+
+      <div class="method-box">
+        <h3>🛡️ Method 2: Fallback Classification (Retry)</h3>
+        <p style="color: #cbd5e1; margin-bottom: 1rem;">
+          If primary classification fails validation, triggers fallback with a minimal prompt. Returns SAFE_CLASSIFICATION if LLM is unavailable.
+        </p>
+        <div class="input-output">
+          <div>
+            <h4>Input</h4>
+            <p>• Ticket text<br>• Fallback prompt<br>• Model (can be different)</p>
+          </div>
+          <div>
+            <h4>Output</h4>
+            <p>• Safe default category<br>• Confidence: 0.5<br>• Minimal reasoning</p>
+          </div>
+        </div>
+        <div style="background: #0f172a; padding: 1rem; border-radius: 6px; margin-top: 1rem; border-left: 3px solid #ef4444;">
+          <strong>File:</strong> <code>fallback_retry.py</code>
+          <br>
+          <strong>Function:</strong> <code>classify_with_fallback()</code>
+          <br>
+          <strong>Guarantee:</strong> Always returns a valid TicketClassification (never None)
+        </div>
+      </div>
+
+      <h3 style="color: #a78bfa; margin: 2rem 0 1rem;">Classification Output Schema</h3>
+
+      <div style="background: #0f172a; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #4f46e5; margin-bottom: 2rem;">
+        <p style="color: #60a5fa; margin-bottom: 1rem; font-family: 'Courier New', monospace;">
+          <strong>TicketClassification (Pydantic Model)</strong>
+        </p>
+        <div style="background: #1a1f3a; padding: 1rem; border-radius: 4px; color: #cbd5e1; font-family: 'Courier New', monospace; overflow-x: auto;">
+{<br>
+&nbsp;&nbsp;"issue_category": "delivery_issue" | "order_issue" | "payment_issue" | "product_issue" | "account_issue" | "refund_request" | "other",<br>
+&nbsp;&nbsp;"assigned_team": "fulfillment_team" | "payments_team" | "logistics_team" | "customer_support" | "tech_team",<br>
+&nbsp;&nbsp;"priority": "low" | "medium" | "high" | "critical",<br>
+&nbsp;&nbsp;"user_sentiment": "positive" | "neutral" | "negative" | "angry",<br>
+&nbsp;&nbsp;"confidence_score": 0.0 to 1.0,<br>
+&nbsp;&nbsp;"reasoning": "One-line explanation of classification",<br>
+&nbsp;&nbsp;"requires_human_review": true | false<br>
+}
+        </div>
+      </div>
+
+      <div class="cards-grid">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">📂</span>
+            <span>Issue Categories</span>
+          </div>
+          <div class="card-content">
+            <ul class="card-list">
+              <li>Order Issue</li>
+              <li>Payment Issue</li>
+              <li>Delivery Issue</li>
+              <li>Product Issue</li>
+              <li>Account Issue</li>
+              <li>Refund Request</li>
+              <li>Other</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">👥</span>
+            <span>Team Assignment</span>
+          </div>
+          <div class="card-content">
+            <ul class="card-list">
+              <li>Fulfillment Team</li>
+              <li>Payments Team</li>
+              <li>Logistics Team</li>
+              <li>Customer Support</li>
+              <li>Tech Team</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">⚡</span>
+            <span>Priority Levels</span>
+          </div>
+          <div class="card-content">
+            <ul class="card-list">
+              <li>Low</li>
+              <li>Medium</li>
+              <li>High</li>
+              <li>Critical</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">😊</span>
+            <span>Sentiment Analysis</span>
+          </div>
+          <div class="card-content">
+            <ul class="card-list">
+              <li>Positive</li>
+              <li>Neutral</li>
+              <li>Negative</li>
+              <li>Angry</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TAB: PRODUCTION MODULES ===== -->
+  <div id="modules" class="tab-content">
+    <div class="flow-container">
+      <div class="flow-title">Production Modules Breakdown</div>
+
+      <div style="display: grid; gap: 1.5rem;">
+
+        <div class="method-box">
+          <h3>🔐 pii_redaction.py</h3>
+          <p style="color: #cbd5e1; margin-bottom: 1rem;">
+            Detects and redacts sensitive data using regex patterns before sending to LLM.
+          </p>
+          <div style="background: #1a1f3a; padding: 1rem; border-radius: 6px;">
+            <strong>Key Functions:</strong><br>
+            • <code>redact_pii(text: str) → PiiResult</code><br>
+            <strong>Patterns:</strong> Email, Phone, Credit Card<br>
+            <strong>Returns:</strong> redacted_text, pii_detected (bool)
+          </div>
+        </div>
+
+        <div class="method-box">
+          <h3>🛡️ prompt_injection.py</h3>
+          <p style="color: #cbd5e1; margin-bottom: 1rem;">
+            Uses LLM-as-a-judge to detect prompt injection attempts with reasoning and confidence scoring.
+          </p>
+          <div style="background: #1a1f3a; padding: 1rem; border-radius: 6px;">
+            <strong>Key Functions:</strong><br>
+            • <code>check_injection(text: str) → InjectionCheck</code><br>
+            <strong>Guard Model:</strong> gpt-4o-mini<br>
+            <strong>Returns:</strong> is_safe, confidence, reasoning, detected_pattern
+          </div>
+        </div>
+
+        <div class="method-box">
+          <h3>🧠 structured_output.py</h3>
+          <p style="color: #cbd5e1; margin-bottom: 1rem;">
+            Primary classification method using OpenAI's function calling for guaranteed JSON output.
+          </p>
+          <div style="background: #1a1f3a; padding: 1rem; border-radius: 6px;">
+            <strong>Key Functions:</strong><br>
+            • <code>classify_with_json_mode(ticket_text, system_prompt, model) → TicketClassification</code><br>
+            <strong>Method:</strong> JSON mode + function schema<br>
+            <strong>Returns:</strong> Pydantic TicketClassification object
+          </div>
+        </div>
+
+        <div class="method-box">
+          <h3>✅ validate_response.py</h3>
+          <p style="color: #cbd5e1; margin-bottom: 1rem;">
+            Validates classification output against schema and business logic constraints.
+          </p>
+          <div style="background: #1a1f3a; padding: 1rem; border-radius: 6px;">
+            <strong>Key Functions:</strong><br>
+            • <code>validate_classification(raw: dict) → ValidationResult</code><br>
+            <strong>Checks:</strong> Schema compliance, confidence bounds, required fields<br>
+            <strong>Returns:</strong> is_valid, error_details, validated_classification
+          </div>
+        </div>
+
+        <div class="method-box">
+          <h3>🔄 fallback_retry.py</h3>
+          <p style="color: #cbd5e1; margin-bottom: 1rem;">
+            Retry mechanism that uses fallback prompts when primary classification fails or LLM is unavailable.
+          </p>
+          <div style="background: #1a1f3a; padding: 1rem; border-radius: 6px;">
+            <strong>Key Functions:</strong><br>
+            • <code>classify_with_fallback(ticket_text, model) → TicketClassification</code><br>
+            <strong>Trigger:</strong> When validation fails<br>
+            <strong>Guarantee:</strong> Always returns valid classification
+          </div>
+        </div>
+
+        <div class="method-box">
+          <h3>📊 cost_calculator.py</h3>
+          <p style="color: #cbd5e1; margin-bottom: 1rem;">
+            Tracks token counts and calculates USD costs using OpenAI pricing. Maintains session-level spending.
+          </p>
+          <div style="background: #1a1f3a; padding: 1rem; border-radius: 6px;">
+            <strong>Key Functions:</strong><br>
+            • <code>count_tokens(text, model) → int</code><br>
+            • <code>calculate_cost(model, input_tokens, output_tokens) → CostInfo</code><br>
+            <strong>Classes:</strong> CostInfo, SessionCostTracker<br>
+            <strong>Pricing:</strong> Updated 2024 GPT model pricing
+          </div>
+        </div>
+
+        <div class="method-box">
+          <h3>📋 prompt_versioning.py</h3>
+          <p style="color: #cbd5e1; margin-bottom: 1rem;">
+            Manages prompt templates for A/B testing and versioning. Allows switching between prompt strategies.
+          </p>
+          <div style="background: #1a1f3a; padding: 1rem; border-radius: 6px;">
+            <strong>Key Functions:</strong><br>
+            • <code>get_active_prompt() → dict</code><br>
+            • <code>get_active_version() → str</code><br>
+            • <code>list_versions() → list</code><br>
+            <strong>Use Case:</strong> A/B test different prompt templates
+          </div>
+        </div>
+
+        <div class="method-box">
+          <h3>🎲 non_determinism.py</h3>
+          <p style="color: #cbd5e1; margin-bottom: 1rem;">
+            Handles randomness and non-deterministic behavior in LLM outputs. Seeds for reproducibility.
+          </p>
+          <div style="background: #1a1f3a; padding: 1rem; border-radius: 6px;">
+            <strong>Purpose:</strong> Control randomness for testing and consistency<br>
+            <strong>Methods:</strong> Seed setting, deterministic execution<br>
+            <strong>Impact:</strong> Affects confidence score variation
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TAB: INTEGRATION ===== -->
+  <div id="integration" class="tab-content">
+    <div class="flow-container">
+      <div class="flow-title">System Integration Points</div>
+
+      <h3 style="color: #a78bfa; margin: 2rem 0 1rem;">Data Flow Across Layers</h3>
+
+      <div class="integration-grid">
+        <div class="integration-box">
+          <div class="integration-icon">🌐</div>
+          <h3>FastAPI Layer</h3>
+          <p>REST API server handling HTTP requests, CORS, validation, and response serialization.</p>
+        </div>
+
+        <div class="integration-box">
+          <div class="integration-icon">🔀</div>
+          <h3>LangGraph Layer</h3>
+          <p>Orchestration engine that chains production modules via a state machine pattern.</p>
+        </div>
+
+        <div class="integration-box">
+          <div class="integration-icon">⚙️</div>
+          <h3>Production Layer</h3>
+          <p>8 specialized modules handling domain-specific logic (PII, security, classification).</p>
+        </div>
+
+        <div class="integration-box">
+          <div class="integration-icon">🧠</div>
+          <h3>LLM Layer</h3>
+          <p>OpenAI API calls for injection detection, classification, and fallback strategies.</p>
+        </div>
+
+        <div class="integration-box">
+          <div class="integration-icon">📦</div>
+          <h3>Data Layer</h3>
+          <p>Pydantic models ensure type safety and validation across all boundaries.</p>
+        </div>
+
+        <div class="integration-box">
+          <div class="integration-icon">🔧</div>
+          <h3>Configuration Layer</h3>
+          <p>Environment variables control models, features, and feature flags.</p>
+        </div>
+      </div>
+
+      <h3 style="color: #a78bfa; margin: 2rem 0 1rem;">Complete Request-Response Cycle</h3>
+
+      <div style="background: #0f172a; border: 2px solid #334155; border-radius: 10px; padding: 2rem;">
+        <div style="font-size: 0.9rem; color: #cbd5e1; line-height: 2;">
+          <p>
+            <strong style="color: #4f46e5;">1. Client Request</strong><br>
+            POST /classify with ticket_text and channel
+          </p>
+
+          <p style="margin-top: 1.5rem;">
+            <strong style="color: #4f46e5;">2. FastAPI Processing</strong><br>
+            Validate request → Extract payload → Call run_pipeline()
+          </p>
+
+          <p style="margin-top: 1.5rem;">
+            <strong style="color: #4f46e5;">3. LangGraph Execution</strong><br>
+            Initialize state → Execute nodes sequentially:
+            <br>&nbsp;&nbsp;a) pii_redact_node<br>
+            &nbsp;&nbsp;b) injection_check_node<br>
+            &nbsp;&nbsp;c) classify_node (or skip if injection detected)<br>
+            &nbsp;&nbsp;d) validate_node<br>
+            &nbsp;&nbsp;e) fallback_node (if validation fails)<br>
+            &nbsp;&nbsp;f) cost_log_node
+          </p>
+
+          <p style="margin-top: 1.5rem;">
+            <strong style="color: #4f46e5;">4. Production Modules Execution</strong><br>
+            Each node delegates to specialized module for actual work
+          </p>
+
+          <p style="margin-top: 1.5rem;">
+            <strong style="color: #4f46e5;">5. LLM Calls (if needed)</strong><br>
+            OpenAI API: Injection check → Classification → Fallback retry
+          </p>
+
+          <p style="margin-top: 1.5rem;">
+            <strong style="color: #4f46e5;">6. Response Assembly</strong><br>
+            Construct ClassifyResponse with all metadata (cost, PII, injection, version)
+          </p>
+
+          <p style="margin-top: 1.5rem;">
+            <strong style="color: #4f46e5;">7. Client Response</strong><br>
+            Return JSON (200 OK) with classification result and metadata
+          </p>
+        </div>
+      </div>
+
+      <h3 style="color: #a78bfa; margin: 2rem 0 1rem;">File Organization & Dependencies</h3>
+
+      <div style="background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 1.5rem; font-family: 'Courier New', monospace; font-size: 0.85rem; color: #cbd5e1; overflow-x: auto;">
+        <div style="color: #60a5fa;">Project Root</div>
+        <div style="margin-top: 0.5rem;">
+          ├── <strong>main.py</strong> (FastAPI server, imports graph.py)<br>
+          ├── <strong>graph.py</strong> (LangGraph pipeline, imports all production_modules)<br>
+          ├── <strong>schema.py</strong> (Pydantic models, imported by main.py & graph.py)<br>
+          ├── <strong>requirements.txt</strong> (FastAPI, LangGraph, LangChain, OpenAI, tiktoken)<br>
+          ├── <strong>.env</strong> (OPENAI_API_KEY, DEFAULT_MODEL)<br>
+          ├── <strong>demo_ui/</strong><br>
+          │&nbsp;&nbsp;└── <strong>index.html</strong> (Frontend, calls POST /classify)<br>
+          └── <strong>production_modules/</strong><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;├── __init__.py<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;├── <strong>pii_redaction.py</strong> (Regex patterns)<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;├── <strong>prompt_injection.py</strong> (LLM guard)<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;├── <strong>structured_output.py</strong> (Main classification)<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;├── <strong>validate_response.py</strong> (Schema validation)<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;├── <strong>fallback_retry.py</strong> (Retry logic)<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;├── <strong>cost_calculator.py</strong> (Token & cost tracking)<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;├── <strong>prompt_versioning.py</strong> (A/B testing)<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;└── <strong>non_determinism.py</strong> (Randomness control)
+        </div>
+      </div>
+
+      <h3 style="color: #a78bfa; margin: 2rem 0 1rem;">Error Handling & Graceful Degradation</h3>
+
+      <div class="cards-grid">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">⚠️</span>
+            <span>Primary Failure</span>
+          </div>
+          <div class="card-content">
+            <strong>If classify_node fails:</strong>
+            <br><br>
+            1. Exception caught<br>
+            2. validation_status set to "fail"<br>
+            3. fallback_node triggered<br>
+            4. SAFE_CLASSIFICATION returned
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">🛡️</span>
+            <span>Injection Detection</span>
+          </div>
+          <div class="card-content">
+            <strong>If injection detected:</strong>
+            <br><br>
+            1. injection_blocked = True<br>
+            2. classification skipped<br>
+            3. SAFE_CLASSIFICATION returned<br>
+            4. Cost logged for guard call
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">🔧</span>
+            <span>Fallback Guarantee</span>
+          </div>
+          <div class="card-content">
+            <strong>Fallback node guarantees:</strong>
+            <br><br>
+            • Never returns None<br>
+            • Always valid TicketClassification<br>
+            • Sets confidence to 0.5<br>
+            • Marks for human review
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <p>🎯 Support Ticket Classifier - Complete Workflow Documentation | LangGraph + FastAPI + OpenAI</p>
+  <p style="margin-top: 0.5rem; font-size: 0.8rem;">This documentation is auto-generated and reflects the current system architecture.</p>
+</footer>
+
+<script>
+  function showTab(tabName) {
+    // Hide all tabs
+    const tabs = document.querySelectorAll('.tab-content');
+    tabs.forEach(tab => tab.classList.remove('active'));
+
+    // Remove active class from all buttons
+    const buttons = document.querySelectorAll('.tab-btn');
+    buttons.forEach(btn => btn.classList.remove('active'));
+
+    // Show selected tab
+    document.getElementById(tabName).classList.add('active');
+
+    // Add active class to clicked button
+    event.target.classList.add('active');
+  }
+
+  // Smooth scroll to tabs on button click
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 100);
+    });
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,35 @@
+# Web Framework - REST API server for handling support ticket classification requests
+fastapi>=0.111.0
+
+# ASGI Application Server - Production-ready server to run the FastAPI application
+uvicorn[standard]>=0.29.0
+
+# LangGraph - Orchestration framework for building multi-step agent workflows and graph-based logic
+langgraph>=0.2.0
+
+# LangChain - Core framework for integrating LLMs, chains, and agents into the classifier
+langchain>=0.2.0
+
+# LangChain OpenAI Integration - Connector for interacting with OpenAI's API (GPT models)
+langchain-openai>=0.1.0
+
+# Pydantic - Data validation and serialization using Python type hints (for schema and request/response models)
+pydantic>=2.7.0
+
+# Python-Dotenv - Load environment variables from .env file for API keys and configuration management
+python-dotenv>=1.0.0
+
+# Tiktoken - Token counter for OpenAI models to estimate costs and manage token limits
+tiktoken>=0.7.0
+
+# Tenacity - Retry library for handling transient failures in API calls and network requests
+tenacity>=8.3.0
+
+# HTTPX - Async-capable HTTP client library for making external API requests
+httpx>=0.27.0
+
+# Pytest - Testing framework for writing and running unit tests for the classifier
+pytest>=8.2.0
+
+# Pytest-Asyncio - Plugin to support async/await syntax in pytest test cases
+pytest-asyncio>=0.23.0

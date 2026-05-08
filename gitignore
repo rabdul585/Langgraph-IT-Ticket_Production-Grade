@@ -1,0 +1,13 @@
+.env
+.env.*
+*.env
+
+secrets.yaml
+config.local.yaml
+credentials.json
+service-account.json
+
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
